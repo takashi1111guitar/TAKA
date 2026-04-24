@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAKA Official Website | CRIMSON BLOOM</title>
+    <!-- Tailwind CSS & Font Awesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 鋭く美しい明朝体「しっぽり明朝」をGoogle Fontsから導入 */
+        @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700;800&display=swap');
+
+        :root {
+            --accent-fire: #ff1a00;
+            --bg-dark: #050505;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #ffffff;
+            font-family: 'Shippori Mincho', serif;
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+            line-height: 1.8;
+        }
+
+        .font-mincho { font-family: 'Shippori Mincho', serif; }
+
+        /* ネオンレッドの発光効果 */
+        .neon-text-red {
+            text-shadow: 0 0 10px rgba(255, 26, 0, 0.9), 0 0 25px rgba(255, 26, 0, 0.6);
+        }
+        
+        /* 固定背景コンテナ（GitHub等に volcano.jpg を置くことで表示されます） */
+        #hero-background-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, rgba(5, 0, 0, 0.4) 0%, rgba(20, 0, 0, 0.7) 100%), 
+                        url('volcano.jpg');
+            background-size: cover;
+            background-position: center;
+            z-index: -2;
+        }
+
+        /* アニメーション用キャンバス */
+        #fireCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .hero-bg {
+            position: relative;
+            background-color: transparent; 
+        }
+
+        /* 装飾用テキスト */
+        .floating-text {
+            position: absolute;
+            font-size: 12vw;
+            font-weight: 800;
+            color: rgba(255, 20, 0, 0.05);
+            white-space: nowrap;
+            z-index: 0;
+            pointer-events: none;
+            user-select: none;
+            text-transform: uppercase;
+            font-family: 'Shippori Mincho', serif;
+            letter-spacing: 0.2em;
+        }
+
+        .section-title-wrap {
+            position: relative;
+            padding-bottom: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .section-title-bg {
+            position: absolute;
+            top: -20%;
+            left: -5%;
+            font-family: 'Shippori Mincho', serif;
+            font-weight: 800;
+            font-size: 6rem;
+            color: rgba(255, 20, 0, 0.05);
+            z-index: -1;
+            letter-spacing: 0.1em;
+            pointer-events: none;
+        }
+
+        /* Adoスタイルのカードデザイン */
+        .ado-card {
+            background: rgba(255, 0, 0, 0.03);
+            border: 1px solid rgba(255, 20, 0, 0.45);
+            backdrop-filter: blur(10px);
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+        }
+
+        .ado-card:hover {
+            border-color: var(--accent-fire);
+            background: rgba(255, 20, 0, 0.15);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(255, 20, 0, 0.3), 0 0 30px rgba(255, 20, 0, 0.15);
+        }
+
+        /* デジタルノイズ風のエフェクト */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(255, 0, 0, 0.02));
+            background-size: 100% 3px, 3px 100%;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        /* ボタン */
+        .btn-ado {
+            position: relative;
+            padding: 1.2rem 4rem;
+            background: transparent;
+            border: 1px solid var(--accent-fire);
+            color: var(--accent-fire);
+            font-weight: 700;
+            letter-spacing: 0.5em;
+            overflow: hidden;
+            transition: all 0.4s;
+            font-family: 'Shippori Mincho', serif;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+        }
+
+        .btn-ado:hover {
+            background: var(--accent-fire);
+            color: #000;
+            box-shadow: 0 0 50px var(--accent-fire);
+        }
+
+        /* スマホメニュー */
+        #mobile-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 0, 0, 0.98);
+            backdrop-filter: blur(25px);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        #mobile-menu-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .menu-link {
+            font-size: 2.5rem;
+            margin: 1rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.4em;
+            transition: color 0.3s, transform 0.4s;
+            position: relative;
+        }
+
+        .menu-link:hover {
+            color: var(--accent-fire);
+            transform: scale(1.1);
+            text-shadow: 0 0 20px var(--accent-fire);
+        }
+
+        nav, section, footer {
+            position: relative;
+            z-index: 60;
+        }
+
+        @keyframes scrollText {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-scroll {
+            animation: scrollText 40s linear infinite;
+        }
+
+        .desktop-nav-link {
+            position: relative;
+            transition: all 0.3s;
+        }
+        .desktop-nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 1px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--accent-fire);
+            transition: width 0.3s;
+        }
+        .desktop-nav-link:hover {
+            color: var(--accent-fire);
+            text-shadow: 0 0 8px var(--accent-fire);
+        }
+        .desktop-nav-link:hover::after {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 固定背景 -->
+    <div id="hero-background-image"></div>
+
+    <!-- 紅蓮の花びらキャンバス -->
+    <canvas id="fireCanvas"></canvas>
+
+    <!-- ヘッダー -->
+    <nav class="fixed w-full z-[150] py-6 px-6 md:px-10 flex justify-between items-center transition-all duration-500 bg-transparent" id="navbar">
+        <div class="text-3xl font-mincho font-extrabold tracking-tighter neon-text-red cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+            TAKA
+        </div>
+        
+        <!-- PCメニュー -->
+        <div class="hidden lg:flex items-center space-x-10 text-[11px] font-bold uppercase tracking-[0.4em] font-mincho">
+            <a href="#home" class="desktop-nav-link transition">Entry</a>
+            <a href="#mv" class="desktop-nav-link transition">Visual</a>
+            <a href="#tracks" class="desktop-nav-link transition">Sound</a>
+            <a href="#about" class="desktop-nav-link transition">Philosophy</a>
+            <a href="#disco" class="desktop-nav-link transition">Archive</a>
+            <a href="#links" class="desktop-nav-link transition">Connect</a>
+        </div>
+
+        <!-- スマホメニューボタン -->
+        <button id="menu-toggle" class="lg:hidden text-white focus:outline-none z-[210] p-2">
+            <div id="hamburger-icon" class="relative w-8 h-6 flex flex-col justify-between overflow-hidden">
+                <span class="w-full h-0.5 bg-white transition-all duration-300 origin-left border-t border-white"></span>
+                <span class="w-full h-0.5 bg-white transition-all duration-300 border-t border-white"></span>
+                <span class="w-full h-0.5 bg-white transition-all duration-300 origin-left border-t border-white"></span>
+            </div>
+        </button>
+    </nav>
+
+    <!-- スマホ用フルスクリーンメニュー -->
+    <div id="mobile-menu-overlay">
+        <a href="#home" class="menu-link font-mincho font-bold">Entry</a>
+        <a href="#mv" class="menu-link font-mincho font-bold">Visual</a>
+        <a href="#tracks" class="menu-link font-mincho font-bold">Sound</a>
+        <a href="#about" class="menu-link font-mincho font-bold">Philosophy</a>
+        <a href="#disco" class="menu-link font-mincho font-bold">Archive</a>
+        <a href="#links" class="menu-link font-mincho font-bold">Connect</a>
+        
+        <div class="mt-20 flex space-x-8">
+            <a href="https://www.instagram.com/taka.guitar.ig?igsh=MXM0aTZ1NXNlOXQ0NQ%3D%3D&utm_source=qr" target="_blank" class="text-2xl hover:text-red-500"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="text-2xl hover:text-red-500"><i class="fab fa-youtube"></i></a>
+            <a href="#" class="text-2xl hover:text-red-500"><i class="fab fa-tiktok"></i></a>
+        </div>
+    </div>
+
+    <!-- ① トップ (Hero) -->
+    <section id="home" class="hero-bg min-h-screen flex flex-col justify-center items-center text-center px-4 relative overflow-hidden">
+        <div class="floating-text top-1/3 animate-scroll opacity-20 font-mincho">ERUPTION OF SOUL</div>
+        
+        <div class="mt-20">
+            <h1 class="text-[16vw] md:text-[11vw] font-extrabold italic leading-none tracking-tighter opacity-95 neon-text-red font-mincho">
+                TAKA
+            </h1>
+            <p class="text-sm md:text-xl font-light tracking-[1.4em] mb-12 uppercase text-red-200 font-mincho">Burn to the Edge</p>
+            
+            <div class="flex space-x-8 justify-center flex-wrap">
+                <a href="https://www.instagram.com/taka.guitar.ig?igsh=MXM0aTZ1NXNlOXQ0NQ%3D%3D&utm_source=qr" target="_blank" class="text-2xl hover:text-red-500 transition-all hover:scale-125"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="text-2xl hover:text-blue-600 transition-all hover:scale-125"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="text-2xl hover:text-white transition-all hover:scale-125"><i class="fab fa-tiktok"></i></a>
+                <a href="#" class="text-2xl hover:text-red-600 transition-all hover:scale-125"><i class="fab fa-youtube"></i></a>
+                <a href="#" class="text-2xl hover:text-green-500 transition-all hover:scale-125"><i class="fab fa-spotify"></i></a>
+            </div>
+        </div>
+
+        <div class="absolute bottom-10 left-10 hidden md:block">
+            <div class="flex flex-col items-center space-y-4">
+                <span class="[writing-mode:vertical-rl] text-[9px] tracking-[0.6em] text-red-700 font-mincho">SCROLL DOWN</span>
+                <div class="w-[1px] h-20 bg-gradient-to-b from-red-600 to-transparent"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ② Visual (MV) -->
+    <section id="mv" class="py-32 px-4 relative">
+        <div class="max-w-6xl mx-auto">
+            <div class="section-title-wrap">
+                <span class="section-title-bg">VISUAL</span>
+                <h2 class="text-4xl md:text-5xl font-extrabold neon-text-red uppercase font-mincho">Latest Movie</h2>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-12">
+                <div class="ado-card p-2 rounded-none border-red-900/50 overflow-hidden">
+                    <div class="relative pt-[56.25%]">
+                        <iframe class="absolute inset-0 w-full h-full grayscale brightness-90 hover:grayscale-0 transition duration-1000" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                    <div class="p-8 text-center">
+                        <p class="text-[10px] text-red-500 font-bold mb-4 tracking-[0.4em] font-mincho uppercase">New Release</p>
+                        <h3 class="text-2xl font-extrabold mb-3 font-mincho">IGNITE THE NIGHT</h3>
+                        <p class="text-zinc-500 text-sm italic">暗闇を切り裂くようなギターソロと、魂の叫び。</p>
+                    </div>
+                </div>
+
+                <div class="ado-card p-2 rounded-none border-red-900/50 overflow-hidden">
+                    <div class="relative pt-[56.25%]">
+                        <iframe class="absolute inset-0 w-full h-full grayscale brightness-90 hover:grayscale-0 transition duration-1000" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                    <div class="p-8 text-center">
+                        <p class="text-[10px] text-zinc-600 font-bold mb-4 tracking-[0.4em] font-mincho uppercase">Archive</p>
+                        <h3 class="text-2xl font-extrabold mb-3 font-mincho">CRIMSON SHADOW</h3>
+                        <p class="text-zinc-500 text-sm italic">静寂の中に潜む情熱。TAKAの表現力が極限に達した一曲。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ③ Sounds (Tracks) -->
+    <section id="tracks" class="py-32 px-4 bg-black/60">
+        <div class="max-w-4xl mx-auto">
+            <div class="section-title-wrap text-right">
+                <span class="section-title-bg right-0 left-auto text-right">SOUNDS</span>
+                <h2 class="text-4xl md:text-5xl font-extrabold neon-text-red uppercase font-mincho">Tracks</h2>
+            </div>
+            
+            <div class="mt-10 space-y-6">
+                <div class="flex items-center justify-between p-8 ado-card group cursor-pointer">
+                    <div class="flex items-center space-x-12">
+                        <span class="text-5xl font-extrabold text-zinc-900 group-hover:text-red-600 transition italic font-mincho">01</span>
+                        <div>
+                            <p class="text-2xl font-extrabold tracking-[0.15em] uppercase font-mincho">Midnight Resonance</p>
+                            <p class="text-[10px] text-zinc-600 font-mincho tracking-[0.4em] mt-2 uppercase">Origin / 2023</p>
+                        </div>
+                    </div>
+                    <div class="w-14 h-14 border border-zinc-800 rounded-full flex items-center justify-center group-hover:border-red-600 transition">
+                        <i class="fas fa-play text-xs text-zinc-700 group-hover:text-red-600"></i>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between p-8 ado-card group cursor-pointer">
+                    <div class="flex items-center space-x-12">
+                        <span class="text-5xl font-extrabold text-zinc-900 group-hover:text-red-600 transition italic font-mincho">02</span>
+                        <div>
+                            <p class="text-2xl font-extrabold tracking-[0.15em] uppercase font-mincho">Ignite the Night</p>
+                            <p class="text-[10px] text-zinc-600 font-mincho tracking-[0.4em] mt-2 uppercase">Single / 2024</p>
+                        </div>
+                    </div>
+                    <div class="w-14 h-14 border border-zinc-800 rounded-full flex items-center justify-center group-hover:border-red-600 transition">
+                        <i class="fas fa-play text-xs text-zinc-700 group-hover:text-red-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ④ Philosophy (About) -->
+    <section id="about" class="py-32 px-4 relative">
+        <div class="max-w-7xl mx-auto">
+            <div class="section-title-wrap mb-24">
+                <span class="section-title-bg uppercase">Identity</span>
+                <h2 class="text-4xl md:text-5xl font-extrabold neon-text-red uppercase font-mincho">About</h2>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-24 items-start">
+                <div class="sticky top-32">
+                    <div class="relative">
+                        <div class="absolute -top-6 -left-6 w-full h-full border border-red-600/20"></div>
+                        <img src="profile.jpg" class="relative z-10 w-full grayscale contrast-125 brightness-75 transition duration-1000 hover:brightness-100" alt="TAKA profile image" onerror="this.src='https://images.unsplash.com/photo-1521433367152-3768e9100063?auto=format&fit=crop&w=1000'">
+                        <div class="absolute -bottom-10 -right-6 z-20 text-right">
+                            <p class="font-extrabold text-7xl text-red-600 opacity-10 leading-none font-mincho">TAKA</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-28">
+                    <p class="text-4xl md:text-6xl font-extrabold italic text-white leading-[1.4] tracking-tighter font-mincho">
+                        「魂を込めた一音を、<br>最新の力で世界へ。」
+                    </p>
+
+                    <div class="space-y-24">
+                        <div class="ado-card p-12 relative overflow-hidden border-l-4 border-l-red-600/60">
+                            <span class="absolute top-0 right-0 text-[10rem] font-black text-white/[0.02] font-mincho leading-none">01</span>
+                            <h3 class="text-2xl font-extrabold text-red-500 mb-8 tracking-widest font-mincho">泥臭く磨き上げた、本物のギター</h3>
+                            <p class="text-zinc-300 text-lg leading-relaxed font-mincho">
+                                「音一つで、人の心を震わせたい。」その一心で、何万時間という歳月をギターに捧げてきた。指先の皮が剥けるまで練習し、第一線のプロからも直接「心に届く音の出し方」を学んでいる。理屈ではない、泥臭い努力で磨き上げた「一音」こそが僕の魂だ。
+                            </p>
+                        </div>
+
+                        <div class="ado-card p-12 relative overflow-hidden border-l-4 border-l-red-800/40">
+                            <span class="absolute top-0 right-0 text-[10rem] font-black text-white/[0.02] font-mincho leading-none">02</span>
+                            <h3 class="text-2xl font-extrabold text-red-500 mb-8 tracking-widest font-mincho">知ってもらうための、ガチのAI戦略</h3>
+                            <p class="text-zinc-300 text-lg leading-relaxed font-mincho">
+                                最高の音楽を作っても、届かなければ意味がない。だからこそ、最新のAI技術を「自分の音楽を広めるための武器」として本気で習得した。ブランディングや発信の「起爆剤」として使いこなし、独りの限界を超え、自分の音を世界中へ届けていく。
+                            </p>
+                        </div>
+
+                        <div class="ado-card p-12 relative overflow-hidden border-l-4 border-l-red-600/60">
+                            <span class="absolute top-0 right-0 text-[10rem] font-black text-white/[0.02] font-mincho leading-none">03</span>
+                            <h3 class="text-2xl font-extrabold text-red-500 mb-8 tracking-widest font-mincho">標的は、日本武道館</h3>
+                            <p class="text-zinc-300 text-lg leading-relaxed font-mincho">
+                                かつての挫折を糧に、最短距離で夢を掴む。徹底した自己管理と、憧れのB'zから受け継いだロックの情熱。死ぬときに後悔しないため、僕は今、自分のすべてを懸けて「武道館」へ駆け上がる。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ⑤ Archive (Discography) -->
+    <section id="disco" class="py-32 px-4 bg-red-950/10">
+        <div class="max-w-6xl mx-auto">
+            <div class="section-title-wrap text-center">
+                <span class="section-title-bg mx-auto left-0 right-0 uppercase">Works</span>
+                <h2 class="text-4xl md:text-5xl font-extrabold neon-text-red uppercase font-mincho">Archive</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mt-24">
+                <div class="ado-card p-6 group cursor-pointer border-red-900/50 bg-red-900/10 text-center">
+                    <div class="aspect-square mb-10 overflow-hidden relative shadow-2xl shadow-red-500/10">
+                        <img src="album1.jpg" class="w-full h-full object-cover group-hover:scale-110 transition duration-1000 grayscale brightness-75 group-hover:grayscale-0 group-hover:brightness-100" onerror="this.src='https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&w=600'">
+                    </div>
+                    <h4 class="text-2xl font-extrabold neon-text-red font-mincho">ORIGIN</h4>
+                    <p class="text-[10px] text-zinc-600 mt-4 tracking-[0.5em] font-mincho uppercase">Album / 2023</p>
+                </div>
+                <div class="ado-card p-6 group cursor-pointer border-none bg-zinc-900/10 opacity-30 hover:opacity-100 transition-opacity text-center">
+                    <div class="aspect-square mb-10 overflow-hidden relative">
+                        <img src="album2.jpg" class="w-full h-full object-cover grayscale opacity-50" onerror="this.src='https://images.unsplash.com/photo-1598387993441-a364f854c3e1?auto=format&fit=crop&w=600'">
+                    </div>
+                    <h4 class="text-2xl font-extrabold font-mincho">REBELLION</h4>
+                    <p class="text-[10px] text-zinc-600 mt-4 tracking-[0.5em] font-mincho uppercase">EP / 2022</p>
+                </div>
+                <div class="ado-card p-6 group cursor-pointer border-none bg-zinc-900/10 opacity-30 hover:opacity-100 transition-opacity text-center">
+                    <div class="aspect-square mb-10 overflow-hidden relative">
+                        <img src="album3.jpg" class="w-full h-full object-cover grayscale opacity-50" onerror="this.src='https://images.unsplash.com/photo-1459749411177-042180ce673c?auto=format&fit=crop&w=600'">
+                    </div>
+                    <h4 class="text-2xl font-extrabold font-mincho">SILENT FIRE</h4>
+                    <p class="text-[10px] text-zinc-600 mt-4 tracking-[0.5em] font-mincho uppercase">EP / 2021</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ⑥ Connect (Footer) -->
+    <footer id="links" class="py-40 px-4 border-t border-red-900/30">
+        <div class="max-w-5xl mx-auto text-center">
+            <h2 class="text-2xl font-extrabold neon-text-red mb-24 tracking-[0.8em] font-mincho text-center">CONNECT</h2>
+            
+            <div class="flex flex-wrap justify-center gap-14 mb-32">
+                <a href="https://www.instagram.com/taka.guitar.ig?igsh=MXM0aTZ1NXNlOXQ0NQ%3D%3D&utm_source=qr" target="_blank" class="group">
+                    <div class="w-24 h-24 border border-zinc-900 flex items-center justify-center text-4xl group-hover:border-red-600 group-hover:text-red-500 transition-all duration-700 ado-card">
+                        <i class="fab fa-instagram"></i>
+                    </div>
+                </a>
+                <a href="#" class="group">
+                    <div class="w-24 h-24 border border-zinc-900 flex items-center justify-center text-4xl group-hover:border-blue-700 group-hover:text-blue-600 transition-all duration-700 ado-card">
+                        <i class="fab fa-facebook-f"></i>
+                    </div>
+                </a>
+                <a href="#" class="group">
+                    <div class="w-24 h-24 border border-zinc-900 flex items-center justify-center text-4xl group-hover:border-white group-hover:text-white transition-all duration-700 ado-card">
+                        <i class="fab fa-tiktok"></i>
+                    </div>
+                </a>
+                <a href="#" class="group">
+                    <div class="w-24 h-24 border border-zinc-900 flex items-center justify-center text-4xl group-hover:border-red-600 group-hover:text-red-500 transition-all duration-700 ado-card">
+                        <i class="fab fa-youtube"></i>
+                    </div>
+                </a>
+                <a href="#" class="group">
+                    <div class="w-24 h-24 border border-zinc-900 flex items-center justify-center text-4xl group-hover:border-green-600 group-hover:text-green-500 transition-all duration-700 ado-card">
+                        <i class="fab fa-spotify"></i>
+                    </div>
+                </a>
+            </div>
+            
+            <p class="text-zinc-800 text-[9px] font-mincho tracking-[0.8em] uppercase">Forged in Crimson. TAKA THE BEYOND.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- モバイルメニュー制御 ---
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu-overlay');
+        const hamburgerIcon = document.getElementById('hamburger-icon');
+        const menuLinks = document.querySelectorAll('.menu-link');
+
+        menuToggle.addEventListener('click', () => {
+            const isActive = mobileMenu.classList.toggle('active');
+            const bars = hamburgerIcon.querySelectorAll('span');
+            if (isActive) {
+                bars[0].style.transform = "rotate(45deg) translate(5px, 5px)";
+                bars[1].style.opacity = "0";
+                bars[2].style.transform = "rotate(-45deg) translate(7px, -7px)";
+                document.body.style.overflow = 'hidden';
+            } else {
+                bars[0].style.transform = "none";
+                bars[1].style.opacity = "1";
+                bars[2].style.transform = "none";
+                document.body.style.overflow = '';
+            }
+        });
+
+        menuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                const bars = hamburgerIcon.querySelectorAll('span');
+                bars[0].style.transform = "none";
+                bars[1].style.opacity = "1";
+                bars[2].style.transform = "none";
+                document.body.style.overflow = '';
+            });
+        });
+
+        // --- 紅蓮の花びらアニメーション ---
+        const canvas = document.getElementById('fireCanvas');
+        const ctx = canvas.getContext('2d');
+        let petals = [];
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Petal {
+            constructor() { this.init(); }
+            init() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + Math.random() * 200;
+                this.size = Math.random() * 15 + 8; 
+                this.speedX = (Math.random() - 0.5) * 3;
+                this.speedY = -(Math.random() * 4 + 2);
+                this.alpha = 1; this.fade = Math.random() * 0.003 + 0.002;
+                this.angle = Math.random() * Math.PI * 2;
+                this.spin = (Math.random() - 0.5) * 0.05;
+                this.flip = 0; this.flipSpeed = Math.random() * 0.03 + 0.01;
+            }
+            update() {
+                this.x += this.speedX + Math.sin(this.y * 0.005) * 1.5;
+                this.y += this.speedY; this.angle += this.spin; this.flip += this.flipSpeed; this.alpha -= this.fade;
+                if (this.alpha <= 0 || this.y < -150) { this.init(); }
+            }
+            draw() {
+                const r = 255; const g = Math.floor(Math.random() * 20); const b = 0;
+                ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle);
+                ctx.scale(Math.cos(this.flip) * this.size, this.size);
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(0.5, -1, 1, 0); ctx.quadraticCurveTo(0.5, 1, 0, 0); ctx.closePath();
+                const flicker = Math.random() * 0.3 + 0.7; ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${this.alpha * flicker})`; ctx.fill();
+                ctx.restore();
+                ctx.globalCompositeOperation = 'lighter';
+                const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 5);
+                grad.addColorStop(0, `rgba(255, 0, 0, ${this.alpha * 0.15})`); grad.addColorStop(1, `rgba(255, 0, 0, 0)`);
+                ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(this.x, this.y, this.size * 5, 0, Math.PI * 2); ctx.fill();
+                ctx.globalCompositeOperation = 'source-over';
+            }
+        }
+        function initPetals() { petals = []; for (let i = 0; i < 80; i++) { petals.push(new Petal()); } }
+        function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); petals.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); }
+        initPetals(); animate();
+
+        // --- スクロール時の挙動 ---
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) { 
+                nav.classList.add('bg-black/80', 'backdrop-blur-xl', 'py-4', 'border-b', 'border-red-900/30'); 
+            } else { 
+                nav.classList.remove('bg-black/80', 'backdrop-blur-xl', 'py-4', 'border-b', 'border-red-900/30'); 
+            }
+        });
+
+        // --- スムーススクロール ---
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href === "#") { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+                try {
+                    const target = document.querySelector(href);
+                    if (target) { e.preventDefault(); window.scrollTo({ top: target.offsetTop, behavior: 'smooth' }); }
+                } catch (e) { }
+            });
+        });
+
+        // --- スクロール連動表示アニメーション (Intersection Observer) ---
+        const observerOptions = { threshold: 0.1 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { 
+                if (entry.isIntersecting) { 
+                    entry.target.style.opacity = '1'; 
+                    entry.target.style.transform = 'translateY(0)'; 
+                } 
+            });
+        }, observerOptions);
+        document.querySelectorAll('section, .ado-card').forEach(el => {
+            el.style.opacity = '0'; 
+            el.style.transform = 'translateY(60px)'; 
+            el.style.transition = 'all 1.6s cubic-bezier(0.19, 1, 0.22, 1)';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
