@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAKA Official Website | CRIMSON BLOOM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 鋭く美しい明朝体「しっぽり明朝」をGoogle Fontsから導入 */
+        @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700;800&display=swap');
+
+        :root {
+            --accent-fire: #ff1a00;
+            --bg-dark: #050505;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #ffffff;
+            font-family: 'Shippori Mincho', serif;
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+            line-height: 1.8;
+        }
+
+        .font-mincho { font-family: 'Shippori Mincho', serif; }
+
+        /* ネオンレッドの発光効果 */
+        .neon-text-red {
+            text-shadow: 0 0 10px rgba(255, 26, 0, 0.9), 0 0 25px rgba(255, 26, 0, 0.6);
+        }
+       
+        /* 固定背景コンテナ */
+        #hero-background-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, rgba(5, 0, 0, 0.4) 0%, rgba(20, 0, 0, 0.7) 100%),
+                        url('volcano.jpg');
+            background-size: cover;
+            background-position: center;
+            z-index: -2;
+        }
+
+        /* 全画面で舞う「紅蓮の花びら」キャンバス */
+        #fireCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .hero-bg {
+            position: relative;
+            background-color: transparent;
+        }
+
+        /* 装飾用テキスト */
+        .floating-text {
+            position: absolute;
+            font-size: 12vw;
+            font-weight: 800;
+            color: rgba(255, 20, 0, 0.05);
+            white-space: nowrap;
+            z-index: 0;
+            pointer-events: none;
+            user-select: none;
+            text-transform: uppercase;
+            font-family: 'Shippori Mincho', serif;
+            letter-spacing: 0.2em;
+        }
+
+        .section-title-wrap {
+            position: relative;
+            padding-bottom: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .section-title-bg {
+            position: absolute;
+            top: -20%;
+            left: -5%;
+            font-family: 'Shippori Mincho', serif;
+            font-weight: 800;
+            font-size: 6rem;
+            color: rgba(255, 20, 0, 0.05);
+            z-index: -1;
+            letter-spacing: 0.1em;
+            pointer-events: none;
+        }
+
+        /* カードデザイン */
+        .ado-card {
+            background: rgba(255, 0, 0, 0.03);
+            border: 1px solid rgba(255, 20, 0, 0.45);
+            backdrop-filter: blur(10px);
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+        }
+
+        .ado-card:hover {
+            border-color: var(--accent-fire);
+            background: rgba(255, 20, 0, 0.15);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(255, 20, 0, 0.3), 0 0 30px rgba(255, 20, 0, 0.15);
+        }
+
+        /* デジタルノイズ走査線 */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0), rgba(255, 0, 0, 0.02));
+            background-size: 100% 3px, 3px 100%;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        /* モバイルメニュー */
+        #mobile-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 0, 0, 0.98);
+            backdrop-filter: blur(25px);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        #mobile-menu-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .menu-link {
+            font-size: 2.5rem;
+            margin: 0.75rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.4em;
+            transition: color 0.3s, transform 0.4s;
+            position: relative;
+        }
+
+        .menu-link:hover {
+            color: var(--accent-fire);
+            transform: scale(1.1);
+            text-shadow: 0 0 20px var(--accent-fire);
+        }
+
+        nav, section, footer {
+            position: relative;
+            z-index: 60;
+        }
+
+        @keyframes scrollText {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-scroll {
+            animation: scrollText 40s linear infinite;
+        }
+
+        .desktop-nav-link {
+            position: relative;
+            transition: all 0.3s;
+        }
+        .desktop-nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 1px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--accent-fire);
+            transition: width 0.3s;
+        }
+        .desktop-nav-link:hover {
+            color: var(--accent-fire);
+            text-shadow: 0 0 8px var(--accent-fire);
+        }
+        .desktop-nav-link:hover::after {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="hero-background-image"></div>
+
+    <canvas id="fireCanvas"></canvas>
+
+    <nav class="fixed w-full z-[150] py-6 px-6 md:px-10 flex justify-between items-center transition-all duration-500 bg-transparent" id="navbar">
+        <div class="text-3xl font-mincho font-extrabold tracking-tighter neon-text-red cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+            TAKA
+        </div>
+       
+        <div class="hidden lg:flex items-center space-x-7 xl:space-x-8 text-[11px] font-bold uppercase tracking-[0.4em] font-mincho">
+            <a href="#home" class="desktop-nav-link transition">Entry</a>
+            <a href="#manifesto" class="desktop-nav-link transition text-red-400">Manifesto</a>
+            <a href="#mv" class="desktop-nav-link transition">Visual</a>
+            <a href="#tracks" class="desktop-nav-link transition">Sound</a>
+            <a href="#about" class="desktop-nav-link transition">Philosophy</a>
+            <a href="#gear" class="desktop-nav-link transition">Gear</a>
+            <a href="#disco" class="desktop-nav-link transition">Archive</a>
+            <a href="#links" class="desktop-nav-link transition">Connect</a>
+        </div>
+
+        <button id="menu-toggle" class="lg:hidden text-white focus:outline-none z-[210] p-2">
+            <div id="hamburger-icon" class="relative w-8 h-6 flex flex-col justify-between overflow-hidden">
+                <span class="w-full h-0.5 bg-white transition-all duration-300 origin-left border-t border-white"></span>
+                <span class="w-full h-0.5 bg-white transition-all duration-300 border-t border-white"></span>
+                <span class="w-full h-0.5 bg-white transition-all duration-300 origin-left border-t border-white"></span>
+            </div>
+        </button>
+    </nav>
+
+    <div id="mobile-menu-overlay">
+        <a href="#home" class="menu-link font-mincho font-bold">Entry</a>
+        <a href="#manifesto" class="menu-link font-mincho font-bold text-red-500">Manifesto</a>
+        <a href="#mv" class="menu-link font-mincho font-bold">Visual</a>
+        <a href="#tracks" class="menu-link font-mincho font-bold">Sound</a>
+        <a href="#about" class="menu-link font-mincho font-bold">Philosophy</a>
+        <a href="#gear" class="menu-link font-mincho font-bold">Gear</a>
+        <a href="#disco" class="menu-link font-mincho font-bold">Archive</a>
+        <a href="#links" class="menu-link font-mincho font-bold">Connect</a>
+    </div>
+
+    <section id="home" class="hero-bg min-h-screen flex flex-col justify-center items-center text-center px-4 relative overflow-hidden">
+        <div class="floating-text top-1/3 animate-scroll opacity-20 font-mincho">ERUPTION OF SOUL</div>
+       
+        <div class="mt-20">
+            <h1 class="text-[16vw] md:text-[11vw] font-extrabold italic leading-none tracking-tighter opacity-95 neon-text-red font-mincho">
+                TAKA
+            </h1>
+            <p class="text-sm md:text-xl font-light tracking-[1.4em] mb-12 uppercase text-red-200 font-mincho">Burn to the Edge</p>
+           
+            <div class="flex space-x-8 justify-center flex-wrap">
+                <a href="https://www.instagram.com/taka.guitar.ig?igsh=MXM0aTZ1NXNlOXQ0NQ%3D%3D&utm_source=qr" target="_blank" class="text-2xl hover:text-red-500 transition-all hover:scale-125"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="text-2xl hover:text-blue-600 transition-all hover:scale-125"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="text-2xl hover:text-white transition-all hover:scale-125"><i class="fab fa-tiktok"></i></a>
+                <a href="#" class="text-2xl hover:text-red-600 transition-all hover:scale-125"><i class="fab fa-youtube"></i></a>
+                <a href="#" class="text-2xl hover:text-green-500 transition-all hover:scale-125"><i class="fab fa-spotify"></i></a>
+            </div>
+        </div>
+
+        <div class="absolute bottom-10 left-10 hidden md:block">
+            <div class="flex flex-col items-center space-y-4">
+                <span class="[writing-mode:vertical-rl] text-[9px] tracking-[0.6em] text-red-700 font-mincho">SCROLL DOWN</span>
+                <div class="w-[1px] h-20 bg-gradient-to-b from-red-600 to-transparent"></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="manifesto" class="py-32 px-4 relative bg-black/40">
+        <div class="max-w-6xl mx-auto">
+            <div class="section-title-wrap mb-20 text-center md:text-left">
+                <span class="section-title-bg md:-left-5">Declaration</span>
+                <h2 class="text-4xl md:text-5xl font-extrabold neon-text-red uppercase font-mincho">Manifesto</h2>
+            </div>
+           
+            <div class="grid lg:grid-cols-12 gap-16 lg:gap-24 items-center">
+                <div class="lg:col-span-5 w-full max-w-md mx-auto lg:max-w-none">
+                    <div class="relative group">
+                        <div class="absolute -inset-3 border border-red-600/30 transform translate-x-2 translate-y-2 transition duration-500 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:border-red-600/60 z-0"></div>
+                        <div class="absolute -inset-3 border border-zinc-800 transform -translate-x-2 -translate-y-2 transition duration-500 group-hover:translate-x-0 group-hover:translate-y-0 z-0"></div>
+                       
+                        <div class="relative z-10 overflow-hidden shadow-2xl shadow-red-900/20 bg-zinc-950">
+                            <img src="profile.jpg" class="w-full h-auto object-cover aspect-[3/4] grayscale contrast-125 brightness-75 transition duration-1000 group-hover:grayscale-0 group-hover:brightness-100 group-hover:scale-105" alt="TAKA Profile" onerror="this.src='https://images.unsplash.com/photo-1521433367152-3768e9100063?auto=format&fit=crop&w=800'">
+                           
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-90"></div>
+                            <div class="absolute bottom-6 left-6 right-6 border-l-2 border-red-600 pl-4">
+                                <p class="font-extrabold text-4xl text-white font-mincho tracking-widest">TAKA</p>
+                                <p class="text-red-500 text-xs tracking-[0.4em] uppercase mt-2 font-mincho">Guitarist / Innovator</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7 space-y-8 relative px-2 md:px-0">
+                    <div class="hidden lg:block absolute -left-8 top-0 bottom-0 w-1 bg-gradient-to-b from-red-600 to-transparent opacity-60"></div>
+                   
+                    <p class="text-3xl md:text-4xl font-extrabold italic text-white leading-[1.6] tracking-tighter font-mincho pb-8 border-b border-red-900/30">
+                        「AIを駆使し、今まで一人では難しかった音楽活動を実現させ、世界に立ち向かう。」
+                    </p>
+                   
+                    <div class="text-zinc-300 text-lg md:text-xl leading-[2] font-mincho space-y-6 pt-4 text-justify md:text-left">
+                        <p>
+                            これまでバンド活動を行ってきたり、あらゆる第一線のプロギタリストに教わることで技術を高めてきた。僕自身アナログで泥臭いギターサウンドが大好き。つまり「Guitarhero」が大好きだ。
+                        </p>
+                        <p>
+                            そこでやってみたいことがある。ギターの能力を限界まで発揮させ、フレーズ面だけなく今までノイズとされていた所とまで表現として出力し世界に一矢報いてやるという作戦だ。
+                        </p>
+                        <p class="pt-4">
+                            君たちはそれを観測する研究者。<br>
+                            AIはその活動のための道具、仲間に過ぎない。
+                        </p>
+                        <p class="text-white text-2xl font-extrabold pt-2 tracking-widest neon-text-red">
+                            是非協力していってくれ。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="mv" class="py-32 px-4 relative">
+        <div class="max-w-6xl mx-auto">
+            <div class="section-title-wrap">
+                <span class="section-title-bg">VISUAL</span>
+                <h2 class="text-4xl md:text-5xl font-extrabold neon-text-red uppercase font-mincho">Latest Movie</h2>
+            </div>
+           
+            <div class="ado-card p-12 w-full flex flex-col items-center justify-center min-h-[350px] border-red-900/50 text-center">
+                <i class="fas fa-video text-5xl md:text-6xl text-red-900 mb-8 opacity-70"></i>
+                <h3 class="text-3xl md:text-5xl font-extrabold neon-text-red font-mincho tracking-widest mb-4">COMING SOON</h3>
+                <p class="text-zinc-500 font-mincho tracking-[0.4em] uppercase text-xs md:text-sm">New Visual is brewing in the heat</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="tracks" class="py-32 px-4 bg-black/60">
+        <div class="max-w-6xl mx-auto">
+            <div class="section-title-wrap text-left">
+                <span class="section-title-bg left-0 right-auto text-left">TRACKS</span>
+                <h2 class="text-4xl md:text-5xl font-extrabold neon-text-red uppercase font-mincho">Tracks</h2>
+            </div>
+           
+            <div class="ado-card p-12 w-full flex flex-col items-center justify-center min-h-[350px] border-red-900/50 text-center mt-10">
+                <i class="fas fa-music text-5xl md:text-6xl text-red-900 mb-8 opacity-70"></i>
+                <h3 class="text-3xl md:text-5xl font-extrabold neon-text-red font-mincho tracking-widest mb-4">COMING SOON</h3>
+                <p class="text-zinc-500 font-mincho tracking-[0.4em] uppercase text-xs md:text-sm">New Sounds dropping soon</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="py-32 px-4 relative">
+        <div class="max-w-7xl mx-auto">
+            <div class="section-title-wrap mb-24">
+                <span class="section-title-bg uppercase">Identity</span>
+                <h2 class="text-4xl md:text-5xl font-extrabold neon-text-red uppercase font-mincho">About</h2>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-24 items-start">
+                <div class="sticky top-32">
+                    <div class="relative">
+                        <div class="absolute -top-6 -left-6 w-full h-full border border-red-600/20"></div>
+                        <img src="philosophy.jpg" class="relative z-10 w-full grayscale contrast-125 brightness-75 transition duration-1000 hover:brightness-100" alt="Philosophy" onerror="this.src='https://images.unsplash.com/photo-1516924962500-2b4b3b99ea02?auto=format&fit=crop&w=1000'">
+                        <div class="absolute -bottom-10 -right-6 z-20 text-right">
+                            <p class="font-extrabold text-7xl text-red-600 opacity-10 leading-none font-mincho">SOUL</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-28">
+                    <p class="text-4xl md:text-6xl font-extrabold italic text-white leading-[1.4] tracking-tighter font-mincho">
+                        「魂を込めた一音を、<br>最新の力で世界へ。」
+                    </p>
+
+                    <div class="space-y-24">
+                        <div class="ado-card p-12 relative overflow-hidden border-l-4 border-l-red-600/60">
+                            <span class="absolute top-0 right-0 text-[10rem] font-black text-white/[0.02] font-mincho leading-none">01</span>
+                            <h3 class="text-2xl font-extrabold text-red-500 mb-8 tracking-widest font-mincho">泥臭く磨き上げた、本物のギター</h3>
+                            <!-- ★ご要望の通り、フレーズの末尾を「直接勘所を学んできた。」へアップデート -->
+                            <p class="text-zinc-300 text-lg leading-relaxed font-mincho text-justify md:text-left">
+                                「音一つで、人の心を震わせたい。」その一心で、何万時間という歳月をギターに捧げてきた。指先の皮が剥けるまで練習し、第一線のプロからも直接勘所を学んできた。理屈ではない、泥臭い努力で磨き上げた「一音」こそが僕の魂だ。
+                            </p>
+                        </div>
+
+                        <div class="ado-card p-12 relative overflow-hidden border-l-4 border-l-red-800/40">
+                            <span class="absolute top-0 right-0 text-[10rem] font-black text-white/[0.02] font-mincho leading-none">02</span>
+                            <h3 class="text-2xl font-extrabold text-red-500 mb-8 tracking-widest font-mincho">知ってもらうための、ガチのAI戦略</h3>
+                            <p class="text-zinc-300 text-lg leading-relaxed font-mincho text-justify md:text-left">
+                                最高の音楽を作っても、届かなければ意味がない。だからこそ、最新のAI技術を「自分の音楽を広めるための武器」として本気で習得した。ブランディングや発信の「起爆剤」として使いこなし、独りの限界を超え、自分の音を世界中へ届けていく。
+                            </p>
+                        </div>
+
+                        <div class="ado-card p-12 relative overflow-hidden border-l-4 border-l-red-600/60">
+                            <span class="absolute top-0 right-0 text-[10rem] font-black text-white/[0.02] font-mincho leading-none">03</span>
+                            <h3 class="text-2xl font-extrabold text-red-500 mb-8 tracking-widest font-mincho">AI × 往年のハードロック</h3>
+                            <p class="text-zinc-300 text-lg leading-relaxed font-mincho text-justify md:text-left">
+                                かつての挫折を糧に、最短距離で夢を掴む。徹底した自己管理と、憧れのギタリストやミュージシャンから受け継いだロックの情熱。最先端のAI技術と往年のハードロックを掛け合わせることで、死ぬときに後悔しないため、僕は今、自分のすべてを懸けて「夢のステージ」へ駆け上がる。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ⑥ Gear (機材) - エレキとアコギを分割し4タブ構成に -->
+    <section id="gear" class="py-32 px-4 bg-black/60 relative">
+        <div class="max-w-7xl mx-auto">
+            <!-- GEARセクションは中央寄せをキープしています -->
+            <div class="section-title-wrap text-center mb-24">
+                <span class="section-title-bg left-0 right-0 mx-auto">EQUIPMENT</span>
+                <h2 class="text-4xl md:text-5xl font-extrabold neon-text-red uppercase font-mincho">Gear</h2>
+            </div>
+
+            <!-- 機材カテゴリー・タブメニュー (4つに分割) -->
+            <div class="flex flex-wrap justify-center gap-4 md:gap-10 mb-16 border-b border-red-900/30">
+                <button class="gear-tab-btn active text-red-500 border-b-2 border-red-500 pb-4 text-lg md:text-xl font-extrabold tracking-widest font-mincho transition-colors" data-target="gear-eguitars">E.GUITARS</button>
+                <button class="gear-tab-btn text-zinc-600 hover:text-red-400 border-b-2 border-transparent hover:border-red-400 pb-4 text-lg md:text-xl font-extrabold tracking-widest font-mincho transition-colors" data-target="gear-aguitars">A.GUITARS</button>
+                <button class="gear-tab-btn text-zinc-600 hover:text-red-400 border-b-2 border-transparent hover:border-red-400 pb-4 text-lg md:text-xl font-extrabold tracking-widest font-mincho transition-colors" data-target="gear-amps">AMPLIFIERS</button>
+                <button class="gear-tab-btn text-zinc-600 hover:text-red-400 border-b-2 border-transparent hover:border-red-400 pb-4 text-lg md:text-xl font-extrabold tracking-widest font-mincho transition-colors" data-target="gear-pedals">PEDALS</button>
+            </div>
+
+            <!-- E.GUITARS (エレキギター) コンテンツ -->
+            <div id="gear-eguitars" class="gear-content grid md:grid-cols-2 lg:grid-cols-3 gap-10 transition-opacity duration-500 opacity-100">
+                <!-- E-Guitar 1: ESP SNAPPER-7 -->
+                <div class="ado-card p-6 group cursor-pointer border-red-900/50 bg-red-900/10 flex flex-col h-full">
+                    <div class="aspect-[4/3] mb-6 overflow-hidden relative shadow-2xl shadow-red-500/10">
+                        <img src="eguitar1.jpg" class="w-full h-full object-cover group-hover:scale-110 transition duration-1000 grayscale brightness-75 group-hover:grayscale-0 group-hover:brightness-100" onerror="this.src='https://images.unsplash.com/photo-1514649923863-ceaf75b770ab?auto=format&fit=crop&w=600'">
+                    </div>
+                    <div class="flex flex-col flex-grow">
+                        <h4 class="text-xl md:text-2xl font-extrabold neon-text-red font-mincho mb-4 leading-tight">ESP SNAPPER-7-AL/R<br><span class="text-sm text-red-500/80 tracking-widest">(Vintage Candy Red / Custom)</span></h4>
+                        <p class="text-zinc-300 text-sm font-mincho leading-relaxed text-justify">
+                            国内最高峰のギターメーカー「ESP」が誇る、実用性と演奏性を極限まで高めた7弦ギター「SNAPPER」です。深みのあるヴィンテージ・キャンディ・レッドの塗装が美しい一本ですが、サウンドの要となるマイク（ピックアップ）の配列が大幅にカスタマイズされています。<br><br>
+                            元々はシングルコイル2基とハムバッカー1基（S-S-H配列）でしたが、フロント側を拡張し、ドリーム・シアター of ジョン・ペトルーシのシグネチャーモデルであるDiMarzio製「Rainmaker 7（フロント）」と「Dreamcatcher 7（ブリッジ）」を搭載したハムバッカー2基の仕様に変更されています。<br><br>
+                            これにより、深く歪ませても7弦の重低音から高音まで音が潰れず、クリアで分離感のあるモダン・ヘヴィネスなサウンドを実現しています。テクニカルなプレイを支えるESPの高い演奏性と、ペトルーシモデルのピックアップがもたらす重厚かつ繊細なトーンが見事に融合した、まさにメインギターと呼ぶにふさわしい実践的なカスタマイズモデルです。
+                        </p>
+                    </div>
+                </div>
+                <!-- E-Guitar 2: Gibson -->
+                <div class="ado-card p-6 group cursor-pointer border-red-900/50 bg-red-900/10 flex flex-col h-full">
+                    <div class="aspect-[4/3] mb-6 overflow-hidden relative shadow-2xl shadow-red-500/10">
+                        <img src="eguitar2.jpg" class="w-full h-full object-cover group-hover:scale-110 transition duration-1000 grayscale brightness-75 group-hover:grayscale-0 group-hover:brightness-100" onerror="this.src='https://images.unsplash.com/photo-1550985543-f47f38aeea53?auto=format&fit=crop&w=600'">
+                    </div>
+                    <div class="flex flex-col flex-grow">
+                        <h4 class="text-xl md:text-2xl font-extrabold neon-text-red font-mincho mb-4 leading-tight">Gibson Custom Shop<br>1959 Les Paul Reissue<br><span class="text-sm text-red-500/80 tracking-widest">(1996年製)</span></h4>
+                        <p class="text-zinc-300 text-sm font-mincho leading-relaxed text-justify">
+                            ギブソンの最高峰部門であるカスタムショップによって1996年に製造された、1959年型レスポールの復刻モデルです。美しい赤い杢目が特徴取ですが、見た目に反してずっしりとした重量感を持っています。ピックアップは元々の仕様からカスタマイズされており、フロントにはゼブラカラーの「57クラシック」、ブリッジ側にはダブルホワイトの「トム・ホームズ J453」を搭載。さらに内部のコンデンサーにはビンテージの「バンブルビー」を採用しています。<br><br>サウンドは、一般的なレスポール特有の中音域が豊かな音というよりも、高音と低音容器が際立つ「ドンシャリ」傾向にあるのが特徴です。そこにブリッジ側のJ453が持つ、弦に噛み付くような鋭いアタック（バイト感）が加わることで、重みのある本体の鳴りと予想以上にうまくマッチしています。バンドアンサンブルの中でも埋もれにくい、抜けの良いパワフルなサウンドを奏でる実践的な一本です。
+                        </p>
+                    </div>
+                </div>
+                <!-- E-Guitar 3: Ernie Ball Music Man -->
+                <div class="ado-card p-6 group cursor-pointer border-red-900/50 bg-red-900/10 flex flex-col h-full">
+                    <div class="aspect-[4/3] mb-6 overflow-hidden relative shadow-2xl shadow-red-500/10">
+                        <img src="eguitar3.jpg" class="w-full h-full object-cover group-hover:scale-110 transition duration-1000 grayscale brightness-75 group-hover:grayscale-0 group-hover:brightness-100" onerror="this.src='https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?auto=format&fit=crop&w=600'">
+                    </div>
+                    <div class="flex flex-col flex-grow">
+                        <h4 class="text-xl md:text-2xl font-extrabold neon-text-red font-mincho mb-4 leading-tight">Ernie Ball Music Man<br>Axis Tribute Pink</h4>
+                        <p class="text-zinc-300 text-sm font-mincho leading-relaxed text-justify">
+                            アメリカのトップブランド「Ernie Ball Music Man」が手がけた、伝説のギタリストであるエドワード・ヴァン・ヘイレン of のモデルを限定復刻した特別なギターです。<br><br>
+                            世界中のプロも愛用するブランドの技術が詰まっており、美しく波打つピンク色の木目が圧倒的な存在感を放ちます。サウンドは、音が太く力強い歪み（ドライブサウンド）が特徴で、高音から低音までバランス良く響きます。<br><br>
+                            手になじみやすいように左右非対称に削られた特別なネック（持ち手部分）により、素早いメロディも非常に弾きやすくなっています。ロックの歴史を築いた王道の力強い音から、優しく綺麗な音まで、弾き手の表現をそのまま形にできる至高の一本です。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- A.GUITARS (アコースティック) コンテンツ -->
+            <div id="gear-aguitars" class="gear-content hidden flex justify-center transition-opacity duration-500 opacity-0">
+                <!-- A-Guitar 1: Martin D-28 (1994年製) -->
+                <div class="ado-card p-6 group cursor-pointer border-red-900/50 bg-red-900/10 flex flex-col w-full max-w-[450px]">
+                    <div class="aspect-[4/3] mb-6 overflow-hidden relative shadow-2xl shadow-red-500/10">
+                        <img src="aguitar1.jpg" class="w-full h-full object-cover group-hover:scale-110 transition duration-1000 grayscale brightness-75 group-hover:grayscale-0 group-hover:brightness-100" onerror="this.src='https://images.unsplash.com/photo-1550291652-6ea9114a47b1?auto=format&fit=crop&w=600'">
+                    </div>
+                    <div class="flex flex-col flex-grow">
+                        <h4 class="text-xl md:text-2xl font-extrabold neon-text-red font-mincho mb-4 leading-tight">Martin D-28<br><span class="text-sm text-red-500/80 tracking-widest">(1994年製)</span></h4>
+                        <p class="text-zinc-300 text-sm font-mincho leading-relaxed text-justify">
+                            マーチンらしいコードのキラキラ感もありつつこの年代ならではのローの図太さもあり男の道具って感じます。サウンドは何時間も弾いても飽きないまさしく王道。最高の相棒です。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AMPLIFIERS コンテンツ -->
+            <div id="gear-amps" class="gear-content hidden grid md:grid-cols-2 lg:grid-cols-3 gap-10 transition-opacity duration-500 opacity-0">
+                <!-- Amp 1: Diamond Amplification Nitrox -->
+                <div class="ado-card p-6 group cursor-pointer border-red-900/50 bg-red-900/10 flex flex-col h-full">
+                    <div class="aspect-[4/3] mb-6 overflow-hidden relative shadow-2xl shadow-red-500/10">
+                        <img src="image.png" class="w-full h-full object-cover group-hover:scale-110 transition duration-1000 grayscale brightness-75 group-hover:grayscale-0 group-hover:brightness-100" alt="Diamond Amplification Nitrox">
+                    </div>
+                    <div class="flex flex-col flex-grow">
+                        <h4 class="text-2xl font-extrabold neon-text-red font-mincho mb-4">Diamond Amplification Nitrox</h4>
+                        <p class="text-zinc-300 text-sm font-mincho leading-relaxed text-justify">
+                            アメリカ・テキサス州でハンドメイド製造されるハイエンド・ブティックブランド「Diamond Amplification」の100W真空管アンプヘッドです。トッププロも愛用するブランドで、過酷な環境に耐える堅牢さと圧倒的な音圧を誇ります。サウンドは深く重みのある歪みが特徴ですが、低音がタイトに引き締まっているため、激しく歪ませても音が潰れずクリアに響きます。また、中音域がしっかりと前に出る設計により、バンドアンサンブルの中でもギターのメロディが埋もれません。透明感のある素真面目なクリーンチャンネルも備えており、静かなフレーズから激しいロックサウンドまで幅広い音作りが可能な一台です。
+                        </p>
+                    </div>
+                </div>
+                <!-- Amp 2: Kemper Profiling PowerHead -->
+                <div class="ado-card p-6 group cursor-pointer border-red-900/50 bg-red-900/10 flex flex-col h-full">
+                    <div class="aspect-[4/3] mb-6 overflow-hidden relative shadow-2xl shadow-red-500/10">
+                        <img src="amp2.jpg" class="w-full h-full object-cover group-hover:scale-110 transition duration-1000 grayscale brightness-75 group-hover:grayscale-0 group-hover:brightness-100" onerror="this.src='https://images.unsplash.com/photo-1598514982205-f36b96d1e8d4?auto=format&fit=crop&w=600'">
+                    </div>
+                    <div class="flex flex-col flex-grow">
+                        <h4 class="text-xl md:text-2xl font-extrabold neon-text-red font-mincho mb-4 leading-tight">Kemper Profiling PowerHead</h4>
+                        <p class="text-zinc-300 text-sm font-mincho leading-relaxed text-justify">
+                            様々なアンプの音色をインストール（プロファイリング）して使用できる革新的なデジタルアンプです。移動の際にはスーツケースにすっぽりと収まるサイズ感でありながら、大出力を誇るパワーアンプを内蔵。さらに、ライブハウスやレコーディングで非常に重脳（重宝）する高品位なライン出力も可能なため、ツアーから日々のセッションまで大活躍する極めて便利な一台です。
+                        </p>
+                    </div>
+                </div>
+                <!-- Amp 3: Bogner 4x12 Speaker Cabinet -->
+                <div class="ado-card p-6 group cursor-pointer border-red-900/50 bg-red-900/10 flex flex-col h-full">
+                    <div class="aspect-[4/3] mb-6 overflow-hidden relative shadow-2xl shadow-red-500/10">
+                        <img src="amp3.jpg" class="w-full h-full object-cover group-hover:scale-110 transition duration-1000 grayscale brightness-75 group-hover:grayscale-0 group-hover:brightness-100" onerror="this.src='https://images.unsplash.com/photo-1620334814885-3e288e285882?auto=format&fit=crop&w=600'">
+                    </div>
+                    <div class="flex flex-col flex-grow">
+                        <h4 class="text-xl md:text-2xl font-extrabold neon-text-red font-mincho mb-4 leading-tight">Bogner 4x12 Speaker Cabinet<br><span class="text-sm text-red-500/80 tracking-widest">(Red)</span></h4>
+                        <p class="text-zinc-300 text-sm font-mincho leading-relaxed text-justify">
+                            ハイエンド・アンプブランド「ボグナー」が製造する、12インチスピーカーを4発搭載した大型のスピーカーキャビネットです。鮮やかな赤い外装（トーレックス）が目を引くこのモデルは、B'zの松本孝弘氏がステージで使用していることでも広く知られています。<br><br>
+                            分厚い木材で作られた密閉型（クローズドバック）の構造により、低音が外に逃げず、前方に押し出されるような力強い音圧を生み出します。キャビネット内部の空間が広いため、ギターの音が豊かに響き、特に深く歪ませた際の中低音の迫力は圧巻です。<br><br>
+                            ボグナーのアンプヘッドはもちろん、他のハイゲインアンプと組み合わせても、そのアンプの持つポテンシャルを最大限に引き出し、バンドサウンドを底支えする重厚な音を出力してくれます。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PEDALS コンテンツ -->
+            <div id="gear-pedals" class="gear-content hidden grid md:grid-cols-2 lg:grid-cols-3 gap-10 transition-opacity duration-500 opacity-0">
+                <!-- Pedal 1: BOSS SD-1 -->
+                <div class="ado-card p-6 group cursor-pointer border-red-900/50 bg-red-900/10 flex flex-col h-full">
+                    <div class="aspect-[4/3] mb-6 overflow-hidden relative shadow-2xl shadow-red-500/10">
+                        <img src="pedal1.jpg" class="w-full h-full object-cover group-hover:scale-110 transition duration-1000 grayscale brightness-75 group-hover:grayscale-0 group-hover:brightness-100" onerror="this.src='https://images.unsplash.com/photo-1590635311855-3221ebefd7cc?auto=format&fit=crop&w=600'">
+                    </div>
+                    <div class="flex flex-col flex-grow">
+                        <h4 class="text-xl md:text-2xl font-extrabold neon-text-red font-mincho mb-4 leading-tight">BOSS SD-1 Super OverDrive <br><span class="text-sm text-red-500/80 tracking-widest">(1980年代 日本製)</span></h4>
+                        <p class="text-zinc-300 text-sm font-mincho leading-relaxed text-justify">
+                            エフェクターの定番ブランドであるBOSS（ボス）が、1981年に発売して以来、現在も愛され続けているオーバードライブの歴史的名機です。この個体は貴重な1980年代の日本製のモデルで、長年使い込まれてきた風格ある傷や汚れが、その歴史を物語っています。動作を知らせるLEDランプが、前の持ち主によって赤から緑色へカスタマイズされているのも特徴的です。サウンドは、真空管アンプの音質を損なうことなく自然に引き立て（プッシュし）、ギターの音を非常に弾きやすくまとめてくれるのが最大の魅力です。現代 of 様々なエフェクターの基礎となった「原点にして頂点」という言葉が最も似合う、頼れる最強の相棒です。
+                        </p>
+                    </div>
+                </div>
+                <!-- Pedal 2: Ibanez TS808HWV2 -->
+                <div class="ado-card p-6 group cursor-pointer border-red-900/50 bg-red-900/10 flex flex-col h-full">
+                    <div class="aspect-[4/3] mb-6 overflow-hidden relative shadow-2xl shadow-red-500/10">
+                        <img src="pedal2.jpg" class="w-full h-full object-cover group-hover:scale-110 transition duration-1000 grayscale brightness-75 group-hover:grayscale-0 group-hover:brightness-100" onerror="this.src='https://images.unsplash.com/photo-1541689592655-f5f52825a3b8?auto=format&fit=crop&w=600'">
+                    </div>
+                    <div class="flex flex-col flex-grow">
+                        <h4 class="text-xl md:text-2xl font-extrabold neon-text-red font-mincho mb-4 leading-tight">Ibanez TS808HWV2<br><span class="text-sm text-red-500/80 tracking-widest">(Custom)</span></h4>
+                        <p class="text-zinc-300 text-sm font-mincho leading-relaxed text-justify">
+                            オーバードライブの代名詞とも言えるアイバニーズ「チューブスクリーマー」の中でも、職人が手作業で配線（ハンドワイヤリング）を行った最高峰モデル「TS808HW」の限定バージョンです。<br><br>
+                            ブルース・ロックの巨匠スティーヴィー・レイ・ヴォーン of サウンドを追求するため、音の心臓部であるオペアンプを、1980年代に製造された非常に希少な「TI RC4558P マレーシアンチップ」に交換するこだわりのカスタマイズが施されています。<br><br>
+                            この貴重なパーツを搭載することで、元のモデルが持つ温かみのある中音域はそのままに、より艶やかでピッキングのニュアンスに敏感に反応する、極上のドライブサウンドを獲得しています。アンプの歪みをさらにプッシュするブースターとしても、単体でのオーバードライブとしても、プレイヤーの感情をダイレクトにアンプへ伝える「最強」のペダルに仕上がっています。
+                        </p>
+                    </div>
+                </div>
+                <!-- Pedal 3 -->
+                <div class="ado-card p-6 group cursor-pointer border-red-900/50 bg-red-900/10 flex flex-col h-full">
+                    <div class="aspect-[4/3] mb-6 overflow-hidden relative shadow-2xl shadow-red-500/10">
+                        <img src="pedal3.jpg" class="w-full h-full object-cover group-hover:scale-110 transition duration-1000 grayscale brightness-75 group-hover:grayscale-0 group-hover:brightness-100" onerror="this.src='https://images.unsplash.com/photo-1605652516480-1a7ee5fba184?auto=format&fit=crop&w=600'">
+                    </div>
+                    <div class="flex flex-col flex-grow">
+                        <h4 class="text-2xl font-extrabold neon-text-red font-mincho mb-2">Space & Delay</h4>
+                        <p class="text-[10px] text-zinc-500 tracking-[0.4em] font-mincho uppercase mb-4">Spatial Effector</p>
+                        <p class="text-zinc-300 text-sm font-mincho leading-relaxed text-justify">
+                            AIが構築する緻密なトラックの隙間を埋める、空間系ペダル。冷たいビートの上に、温かみのある残響と広大な宇宙空間を描き出しスケール感を広げる。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ⑦ Archive (過去作) -->
+    <section id="disco" class="py-32 px-4 bg-red-950/10">
+        <div class="max-w-6xl mx-auto">
+            <div class="section-title-wrap text-center">
+                <span class="section-title-bg mx-auto left-0 right-0 uppercase">Works</span>
+                <h2 class="text-4xl md:text-5xl font-extrabold neon-text-red uppercase font-mincho">Archive</h2>
+            </div>
+
+            <div class="ado-card p-12 w-full flex flex-col items-center justify-center min-h-[350px] border-red-900/50 text-center mt-24">
+                <i class="fas fa-compact-disc text-5xl md:text-6xl text-red-900 mb-8 opacity-70"></i>
+                <h3 class="text-3xl md:text-5xl font-extrabold neon-text-red font-mincho tracking-widest mb-4">COMING SOON</h3>
+                <p class="text-zinc-500 font-mincho tracking-[0.4em] uppercase text-xs md:text-sm">The archive is currently locked</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ⑧ Connect (SNSリンク) -->
+    <footer id="links" class="py-40 px-4 border-t border-red-900/30">
+        <div class="max-w-5xl mx-auto text-center">
+            <h2 class="text-2xl font-extrabold neon-text-red mb-24 tracking-[0.8em] font-mincho text-center">CONNECT</h2>
+           
+            <div class="flex flex-wrap justify-center gap-14 mb-32">
+                <a href="https://www.instagram.com/taka.guitar.ig?igsh=MXM0aTZ1NXNlOXQ0NQ%3D%3D&utm_source=qr" target="_blank" class="group">
+                    <div class="w-24 h-24 border border-zinc-900 flex items-center justify-center text-4xl group-hover:border-red-600 group-hover:text-red-500 transition-all duration-700 ado-card">
+                        <i class="fab fa-instagram"></i>
+                    </div>
+                </a>
+                <a href="#" class="group">
+                    <div class="w-24 h-24 border border-zinc-900 flex items-center justify-center text-4xl group-hover:border-blue-700 group-hover:text-blue-600 transition-all duration-700 ado-card">
+                        <i class="fab fa-facebook-f"></i>
+                    </div>
+                </a>
+                <a href="#" class="group">
+                    <div class="w-24 h-24 border border-zinc-900 flex items-center justify-center text-4xl group-hover:border-white group-hover:text-white transition-all duration-700 ado-card">
+                        <i class="fab fa-tiktok"></i>
+                    </div>
+                </a>
+                <a href="#" class="group">
+                    <div class="w-24 h-24 border border-zinc-900 flex items-center justify-center text-4xl group-hover:border-red-600 group-hover:text-red-500 transition-all duration-700 ado-card">
+                        <i class="fab fa-youtube"></i>
+                    </div>
+                </a>
+                <a href="#" class="group">
+                    <div class="w-24 h-24 border border-zinc-900 flex items-center justify-center text-4xl group-hover:border-green-600 group-hover:text-green-500 transition-all duration-700 ado-card">
+                        <i class="fab fa-spotify"></i>
+                    </div>
+                </a>
+            </div>
+           
+            <p class="text-zinc-800 text-[9px] font-mincho tracking-[0.8em] uppercase">Forged in Crimson. TAKA THE BEYOND.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- モバイルメニュー制御 ---
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu-overlay');
+        const hamburgerIcon = document.getElementById('hamburger-icon');
+        const menuLinks = document.querySelectorAll('#mobile-menu-overlay .menu-link');
+
+        menuToggle.addEventListener('click', () => {
+            const isActive = mobileMenu.classList.toggle('active');
+            const bars = hamburgerIcon.querySelectorAll('span');
+            if (isActive) {
+                bars[0].style.transform = "rotate(45deg) translate(5px, 5px)";
+                bars[1].style.opacity = "0";
+                bars[2].style.transform = "rotate(-45deg) translate(7px, -7px)";
+                document.body.style.overflow = 'hidden';
+            } else {
+                bars[0].style.transform = "none";
+                bars[1].style.opacity = "1";
+                bars[2].style.transform = "none";
+                document.body.style.overflow = '';
+            }
+        });
+
+        menuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                const bars = hamburgerIcon.querySelectorAll('span');
+                bars[0].style.transform = "none";
+                bars[1].style.opacity = "1";
+                bars[2].style.transform = "none";
+                document.body.style.overflow = '';
+            });
+        });
+
+        // --- 紅蓮の花びらアニメーション ---
+        const canvas = document.getElementById('fireCanvas');
+        const ctx = canvas.getContext('2d');
+        let petals = [];
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Petal {
+            constructor() { this.init(); }
+            init() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + Math.random() * 200;
+                this.size = Math.random() * 15 + 8;
+                this.speedX = (Math.random() - 0.5) * 3;
+                this.speedY = -(Math.random() * 4 + 2);
+                this.alpha = 1; this.fade = Math.random() * 0.003 + 0.002;
+                this.angle = Math.random() * Math.PI * 2;
+                this.spin = (Math.random() - 0.5) * 0.05;
+                this.flip = 0; this.flipSpeed = Math.random() * 0.03 + 0.01;
+            }
+            update() {
+                this.x += this.speedX + Math.sin(this.y * 0.005) * 1.5;
+                this.y += this.speedY; this.angle += this.spin; this.flip += this.flipSpeed; this.alpha -= this.fade;
+                if (this.alpha <= 0 || this.y < -150) { this.init(); }
+            }
+            draw() {
+                const r = 255; const g = Math.floor(Math.random() * 20); const b = 0;
+                ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle);
+                ctx.scale(Math.cos(this.flip) * this.size, this.size);
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(0.5, -1, 1, 0); ctx.quadraticCurveTo(0.5, 1, 0, 0); ctx.closePath();
+                const flicker = Math.random() * 0.3 + 0.7; ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${this.alpha * flicker})`; ctx.fill();
+                ctx.restore();
+                ctx.globalCompositeOperation = 'lighter';
+                const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 5);
+                grad.addColorStop(0, `rgba(255, 0, 0, ${this.alpha * 0.15})`); grad.addColorStop(1, `rgba(255, 0, 0, 0)`);
+                ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(this.x, this.y, this.size * 5, 0, Math.PI * 2); ctx.fill();
+                ctx.globalCompositeOperation = 'source-over';
+            }
+        }
+        function initPetals() { petals = []; for (let i = 0; i < 80; i++) { petals.push(new Petal()); } }
+        function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); petals.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); }
+        initPetals(); animate();
+
+        // --- 機材タブ切り替え ---
+        const gearTabBtns = document.querySelectorAll('.gear-tab-btn');
+        const gearContents = document.querySelectorAll('.gear-content');
+
+        gearTabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // ボタンのスタイル更新
+                gearTabBtns.forEach(b => {
+                    b.classList.remove('text-red-500', 'border-red-500');
+                    b.classList.add('text-zinc-600', 'border-transparent');
+                });
+                btn.classList.remove('text-zinc-600', 'border-transparent');
+                btn.classList.add('text-red-500', 'border-red-500');
+
+                // コンテンツの切り替え
+                gearContents.forEach(content => {
+                    content.classList.add('hidden', 'opacity-0');
+                    content.classList.remove('opacity-100');
+                });
+
+                const targetId = btn.getAttribute('data-target');
+                const targetContent = document.getElementById(targetId);
+                targetContent.classList.remove('hidden');
+               
+                // フェードイン用の遅延
+                setTimeout(() => {
+                    targetContent.classList.remove('opacity-0');
+                    targetContent.classList.add('opacity-100');
+                }, 50);
+            });
+        });
+
+        // --- スクロール時の挙動 ---
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                nav.classList.add('bg-black/80', 'backdrop-blur-xl', 'py-4', 'border-b', 'border-red-900/30');
+            } else {
+                nav.classList.remove('bg-black/80', 'backdrop-blur-xl', 'py-4', 'border-b', 'border-red-900/30');
+            }
+        });
+
+        // --- スムーススクロール ---
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href === "#") { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+                try {
+                    const target = document.querySelector(href);
+                    if (target) { e.preventDefault(); window.scrollTo({ top: target.offsetTop, behavior: 'smooth' }); }
+                } catch (e) { }
+            });
+        });
+
+        // --- スクロール連動表示アニメーション (Intersection Observer) ---
+        const observerOptions = { threshold: 0.1 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        document.querySelectorAll('section, .ado-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(60px)';
+            el.style.transition = 'all 1.6s cubic-bezier(0.19, 1, 0.22, 1)';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
